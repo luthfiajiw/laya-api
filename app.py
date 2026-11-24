@@ -76,16 +76,4 @@ def predict(req: PredictRequest):
     safe_raw = to_json_safe(raw_result)
     answers = safe_raw.get("answers", safe_raw) if isinstance(safe_raw, dict) else {}
 
-    decisions = {}
-    if isinstance(answers, dict):
-        for key, val in answers.items():
-            if isinstance(val, dict):
-                conf = float(val.get("confidence", val.get("probability", 0.0)))
-                entry = dict(val)
-                entry["confidence"] = round(conf, 4)
-                entry["accepted"] = conf >= req.threshold
-                decisions[key] = entry
-            else:
-                decisions[key] = val
-
-    return {"decisions": decisions, "raw": safe_raw}
+    return {"response": safe_raw}
