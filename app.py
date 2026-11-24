@@ -41,10 +41,17 @@ app = FastAPI(title="Laya Decision Service", lifespan=lifespan)
 
 
 class PredictRequest(BaseModel):
-    state: Optional[str] = Field(default=None, description="Teks input resmi Laya")
-    text: Optional[str] = Field(default=None, description="Alias opsional untuk state")
+    state: Optional[Union[str, Dict[str, Any], List[Any]]] = Field(
+        default=None,
+        description="Input resmi Laya (teks, JSON object/dict, atau list)",
+    )
+    text: Optional[str] = Field(default=None, description="Alias opsional untuk state berupa teks")
     questions: Union[Dict[str, Any], List[Dict[str, Any]]]
     threshold: float = Field(default=0.85, ge=0.0, le=1.0)
+    model: Optional[str] = Field(
+        default=None,
+        description="Field opsional untuk kompatibilitas payload ala Jev",
+    )
 
 
 @app.get("/health")
@@ -58,7 +65,9 @@ def predict(req: PredictRequest):
         raise HTTPException(status_code=503, detail="Model belum siap")
 
     input_state = req.state if req.state is not None else req.text
-    if not input_state or not input_state.strip():
+    is_empty_str = isinstance(input_state, str) and not input_state.strip()
+    is_empty_collection = isinstance(input_state, (dict, list)) and len(input_state) == 0
+    if input_state is None or is_empty_str or is_empty_collection:
         raise HTTPException(
             status_code=422,
             detail="Field 'state' (atau 'text') wajib diisi dan tidak boleh kosong",
