@@ -180,4 +180,4 @@ def predict(req: PredictRequest):
         )
 
     safe_raw = to_json_safe(raw_result)
-    return {"response": safe_raw}
+    return safe_raw
